@@ -6,13 +6,6 @@ function startPayments() {
 
     // заранее открываем окно, чтобы браузер не заблокировал popup
     const win = window.open('about:blank', '_blank');
-    // const win2 = window.open('about:blank', '_blank'); // для открытия в новом окне
-
-    //fetch("{{ url_for('pay_confirm') }}", 
-    //debugger
-    //fetch('/pay_confirm',  
-    
-    // fetch("{{ url_for('test11') }}", 
     fetch("{{ url_for('pay_confirm') }}", 
         {
         method: 'POST',

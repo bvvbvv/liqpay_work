@@ -17,7 +17,8 @@ def check_contract(contract, user_id_in):
     #response = requests.get('http://liqpay/check_contract.php', params=payload)
     #response = requests.get('http://pay_dipt/check_contract.php', params=payload)
     try:
-        response = requests.post('http://pay_dipt/check_contract.php', data=payload, timeout=3)
+        #response = requests.post('http://pay_dipt/check_contract.php', data=payload, timeout=3)
+        response = requests.post('https://my-dipt.sns.net.ua/new/work_bvv/check_contract.php', data=payload, timeout=3)
     except requests.exceptions.Timeout:
         return 'not_find', '0', 'Не найдено', '0.0','Помилка: Перевищено час очікування відповіді сервера статистики.'
         
@@ -30,6 +31,7 @@ def check_contract(contract, user_id_in):
         user_id = result.get('user_id')
         full_name = result.get('full_name')
         account1 = result.get('account1')
+        err_message='';
         if (is_find != 'success'):
             err_message = ' Договір № <b>' + contract + '</b> не знайдено.'
             
@@ -39,33 +41,33 @@ def check_contract(contract, user_id_in):
         print(f"utility4sns: check_contract: Помилка запиту: {response.status_code}")
         return 'error', '0', 'Не найдено', '0.0', 'Помилка звернення до сервера статистики, код :<b>' + str(response.status_code)+'</b>'
     
-def send2transaction(user_id, summ):
-    import requests
+# def send2transaction(user_id, summ):
+#     import requests
 
-    # Данные для отправки
-    payload = {
-        'summ': summ,
-        'user_id': user_id
-    }
-    # Отправка POST-запроса
-    #response = requests.post('http://mytest.com/work/myscript.php', data=payload)
-    try:
-        response = requests.post('http://pay_dipt/send2transaction.php', data=payload, timeout=3)
-    except requests.exceptions.Timeout:
-        return 'error', '0', 'Не найдено', '0.0','Помилка:  Перевищено час очікування відповіді сервера  transaction.'
+#     # Данные для отправки
+#     payload = {
+#         'summ': summ,
+#         'user_id': user_id
+#     }
+#     # Отправка POST-запроса
+#     #response = requests.post('http://mytest.com/work/myscript.php', data=payload)
+#     try:
+#         response = requests.post('http://pay_dipt/send2transaction.php', data=payload, timeout=3)
+#     except requests.exceptions.Timeout:
+#         return 'error', '0', 'Не найдено', '0.0','Помилка:  Перевищено час очікування відповіді сервера  transaction.'
         
 
-    # Проверка успешности запроса
-    if response.status_code == 200:
-        # Получение ответа в формате JSON
-        result = response.json()
-        # Извлечение данных
-        res1 = result.get('res1')
-        res2 = result.get('res2')
-        print(f"res1={res1}, res2={res2}")
-    else:
-        print(f"utility4sns send2transaction:  Помилка запроса: {response.status_code}")
-        return 'error', '0', 'Не найдено', '0.0', 'Помилка звернення до transaction, код <b>'+ str(response.status_code)+'</b>'
+#     # Проверка успешности запроса
+#     if response.status_code == 200:
+#         # Получение ответа в формате JSON
+#         result = response.json()
+#         # Извлечение данных
+#         res1 = result.get('res1')
+#         res2 = result.get('res2')
+#         print(f"res1={res1}, res2={res2}")
+#     else:
+#         print(f"utility4sns send2transaction:  Помилка запроса: {response.status_code}")
+#         return 'error', '0', 'Не найдено', '0.0', 'Помилка звернення до transaction, код <b>'+ str(response.status_code)+'</b>'
   
 def send2sns_transaction(decoded_data):
     import requests, time, pytz, re
@@ -99,7 +101,8 @@ def send2sns_transaction(decoded_data):
         'transaction_is': transaction_id,
         'datepay':datepay    
     }
-    REMOTE_URL='http://pay_dipt/send2transaction.php'
+    #REMOTE_URL='http://pay_dipt/send2transaction.php'
+    REMOTE_URL='https://my-dipt.sns.net.ua/new/work_bvv/send2transaction.php'
     for attempt in range(1, NMaxRequest + 1):
         try:
             response = requests.post(REMOTE_URL,data=payload,timeout=MaxSecond)
