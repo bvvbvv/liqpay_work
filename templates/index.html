@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-left">
+    <div class="container-div">
+    <div class="tag">Вітаємо!</div>
+    </div>
+    <p class="lead" style="text-align: center;"> Ми  пропонуємо швидкий та надійний доступ до мережі Інтернет для дому
+      та бізнесу і робимо все, щоб у найкоротші терміни відновлювати канали зв'язку </p>
+      <div class="container-div">
+        <div class="actions">
+          <a class="btn" href="{{ url_for('form') }}">Поповнити рахунок</a>
+          <a class="btn" href="{{ url_for('price') }}">Тарифи</a>
+        </div>
+    </div>
+
+  </div>
+
+</section>
+{% endblock %}

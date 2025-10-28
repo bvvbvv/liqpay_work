@@ -1,0 +1,158 @@
+/* Dark tech + Light (L2) manual toggle
+   Gradient A: #7C5CFF -> #00D4FF
+*/
+
+:root {
+  --accent-a: #7C5CFF;
+  --accent-b: #00D4FF;
+  --radius: 12px;
+  --container: 1100px;
+}
+
+/* DARK theme variables (default) */
+/* :root[data-theme="dark"], html[data-theme="dark"] {
+  --bg: #0b1020;
+  --panel: rgba(255,255,255,0.03);
+  --muted: rgba(234,240,255,0.72);
+  --text: #eaf0ff;
+  --muted-2: rgba(255,255,255,0.6);
+  --card-bg: rgba(255,255,255,0.03);
+} */
+
+/* LIGHT theme variables (L2) */
+/* :root[data-theme="light"], html[data-theme="light"] { */
+:root, html{
+  --bg: #F3F4F6;
+  --panel: rgba(0,0,0,0.03);
+  --muted: #3b3f45;
+  --text: #1a1c1f;
+  --muted-2: rgba(26,28,31,0.6);
+  --card-bg: rgba(0,0,0,0.02);
+}
+
+/* Apply background using html[data-theme] to let JS toggle root */
+/* html[data-theme="dark"] body,
+html[data-theme="light"] body {
+  background: radial-gradient(900px 400px at 10% 10%, rgba(124,92,255,0.06), transparent 10%),
+              radial-gradient(600px 300px at 90% 90%, rgba(0,212,255,0.04), transparent 10%),
+              var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  margin: 0;
+  padding: 28px 18px;
+} */
+ body {
+    background-color: #f5f7fa;
+    background-image: url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='%23000000' fill-opacity='0.03'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    color: #1a1a1a;
+    font-family: Arial, sans-serif;
+    background-size: 160px 160px;
+    animation: bgMove 20s linear infinite;
+}
+button, .btn {
+    background-color: #009dff;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 0 6px rgba(0, 157, 255, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover, .btn:hover {
+    box-shadow: 0 0 10px rgba(0, 157, 255, 0.7);
+    transform: translateY(-2px);
+}
+header, nav {
+    background: white;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+/* Анимация медленного движения фона */
+@keyframes bgMove {
+    from { background-position: 0 0; }
+    to { background-position: 160px 160px; }
+}
+/* Конец новой вставки */
+
+/* layout */
+.container{max-width:var(--container);margin:0 auto;padding:0 18px}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.site-header{position:relative;z-index:20;padding:12px 0}
+.site-footer{padding:18px 0;color:var(--muted);opacity:0.95;margin-top:34px;border-top:1px solid rgba(0,0,0,0.04)}
+
+/* logo */
+.logo{display:flex;align-items:center;gap:12px}
+.logo-img{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));display:block}
+.brand-title{font-weight:700}
+.brand-sub{font-size:12px;color:var(--muted)}
+
+/* nav */
+.main-nav{display:flex;align-items:center;gap:8px}
+.main-nav a{color:var(--muted);text-decoration:none;margin-left:12px;padding:8px 10px;border-radius:8px;font-weight:600}
+.main-nav a:hover{color:var(--text)}
+.main-nav a.cta{background:linear-gradient(90deg,var(--accent-a),var(--accent-b));color:#071022;box-shadow:0 8px 30px rgba(124,92,255,0.12)}
+
+/* theme toggle button */
+.theme-toggle{
+  margin-left:12px;
+  background:transparent;
+  border:1px solid rgba(0,0,0,0.08);
+  padding:8px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+/* background decorations */
+.bg-decor{position:fixed;inset:0;pointer-events:none;z-index:0}
+.blob{position:fixed;width:420px;opacity:0.9;filter:blur(28px)}
+.blob.b1{right:-140px;top:-80px}
+.blob.b2{left:-160px;bottom:-120px;transform:rotate(8deg)}
+.grid-overlay{position:fixed;inset:0;background-image:linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);background-size:160px 160px;opacity:0.03}
+
+/* main */
+.main-content{position:relative;z-index:10;padding-top:22px}
+.hero{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:center;padding:26px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent 40%);border-radius:16px;box-shadow:0 6px 40px rgba(0,0,0,0.2);border:1px solid rgba(0,0,0,0.04)}
+.tag{display:inline-block;padding:6px 10px;background:var(--card-bg);border-radius:999px;font-weight:700;color:var(--muted);font-size:13px;margin-bottom:12px}
+.hero-left h1{margin:6px 0 12px 0;font-size:32px;line-height:1.05}
+.lead{color:var(--muted);margin-bottom:16px}
+.actions{display:flex;gap:12px}
+.btn{padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;text-decoration:none;font-weight:700;display:inline-block}
+.btn.primary{background:linear-gradient(90deg,var(--accent-a),var(--accent-b));color:#071022;box-shadow:0 8px 30px rgba(124,92,255,0.12);border:none}
+
+/* card */
+.card{background:var(--panel);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+.stats .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,0.02)}
+
+/* content blocks */
+.content-block{padding:22px;margin-top:20px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px}
+.simple-form label{display:block;margin-top:10px;color:var(--muted);font-size:13px}
+.simple-form input,.simple-form textarea{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:var(--card-bg);color:var(--text)}
+
+/* price table */
+.table-wrap{overflow:auto;margin-top:8px}
+.price-table{width:100%;border-collapse:collapse;font-family:monospace}
+.price-table thead th{text-align:left;padding:12px;border-bottom:1px solid rgba(0,0,0,0.04);color:var(--muted)}
+.price-table tbody td{padding:12px;border-bottom:1px solid rgba(0,0,0,0.02)}
+.price-table tbody tr.recommended{background:linear-gradient(90deg, rgba(124,92,255,0.06), rgba(0,212,255,0.03));box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+.price-table tbody tr:hover{background:rgba(0,0,0,0.02)}
+
+/* result */
+.result.success h2{color:#7CFFB3}
+.result.error h2{color:#FF8A8A}
+
+/* responsiveness */
+@media (max-width:920px){
+  .hero{grid-template-columns:1fr; padding:18px}
+  .blob{display:none}
+}
+@media (max-width:560px){
+  .header-inner{flex-direction:column;align-items:flex-start}
+  .main-nav{flex-wrap:wrap}
+  .main-nav a{margin-left:6px;padding:6px 8px}
+}

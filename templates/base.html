@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ "Провайдер ФОП Місяйло Д.П." }}</title>
+
+  <!-- важно: путь к CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- декоративный фон (если у тебя есть blob svg в static/img/) -->
+  <div class="bg-decor" aria-hidden="true">
+    <!-- опционально: <img class="blob b1" src="{{ url_for('static', filename='img/blob1.svg') }}" alt=""> -->
+  </div>
+
+  <header class="site-header">
+     <!-- если есть логотип: <img class="logo-img" src="{{ url_for('static', filename='img/logo.svg') }}" alt="logo"> -->
+    <div class="logo-img" aria-hidden="true">
+        <img class="logo-img" src="{{ url_for('static', filename='img/comp_net.svg') }}" alt="logo">  
+    </div>
+    <div class="container header-inner">
+      <div class="logo">
+        <img src="{{ url_for('static', filename='img/misiailo_2.svg') }}" alt="logo">
+      </div>
+      <div class="brand-sub"> Інтернет провайдер</div>
+      <nav class="main-nav" role="navigation" aria-label="Main">
+        <a href="{{ url_for('index') }}">Головна</a>
+        <a href="{{ url_for('oferta') }}">Оферта</a>
+        <a href="{{ url_for('price') }}">Тарифи</a>
+        <!-- <a href="{{ url_for('contact') }}">Контакти</a> -->
+        <!-- <a class="cta" href="{{ url_for('form') }}">CONNECT</a> -->
+        <a href="{{ url_for('form') }}">Оплата</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content" role="main" style="padding:18px;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="info_footer" style="margin-top: 10px;">
+            Юридична адреса:84000, Донецька обл., Олександрiвський р-н, 
+         с. Петрiвка Перша, вул.Степна, буд. 51
+    </div>
+     <div style="margin:10px;">
+                Контакти відділу обслуговування кліентів : +380952182318 </br>
+                EMail: p160871vn@gmail.com 
+            </div>
+    <div style="margin-top: 10px;">
+      <a style="color: #439ef2;" href="{{ url_for('security_politics') }}">Наша політика конфіденційності</a>
+    </div>
+    <div class="container footer-inner" style="margin-top: 10px;">
+      <div>© {{ current_year if current_year is defined else "2025" }} Розроблено з ♥ Місяйло Д.П.</div>
+    </div>
+  </footer>
+
+</body>
+</html>

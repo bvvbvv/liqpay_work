@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" width="1440" height="280" preserveAspectRatio="none" viewBox="0 0 1440 280">
+    <g mask="url(&quot;#SvgjsMask1978&quot;)" fill="none">
+        <rect width="1440" height="280" x="0" y="0" fill="url(&quot;#SvgjsLinearGradient1979&quot;)"></rect>
+        <path d="M722.05 315.97C821.2 315.2 906.99 219.89 1106.37 217.94 1305.75 215.99 1390.42 104.36 1490.69 103.14" stroke="rgba(43, 93, 146, 1)" stroke-width="2"></path>
+        <path d="M226.85 326C346.71 322.47 445.53 143.77 670.31 143.27 895.09 142.77 892.04 178.27 1113.77 178.27 1335.5 178.27 1446.02 143.3 1557.23 143.27" stroke="rgba(43, 93, 146, 1)" stroke-width="2"></path>
+        <path d="M782.31 318.74C866.04 310.54 842.07 135.88 1062.71 132.69 1283.35 129.5 1481.85 51.7 1623.51 51.49" stroke="rgba(43, 93, 146, 1)" stroke-width="2"></path>
+        <path d="M450.89 295.39C557.34 290.77 639.68 112.6 835.56 111.92 1031.44 111.24 1027.89 146.92 1220.23 146.92 1412.56 146.92 1508.34 111.96 1604.9 111.92" stroke="rgba(43, 93, 146, 1)" stroke-width="2"></path>
+        <path d="M330.01 282.64C445.19 278.48 537.22 95.9 751.26 95.29 965.3 94.68 961.88 130.29 1172.5 130.29 1383.13 130.29 1488.08 95.32 1593.75 95.29" stroke="rgba(43, 93, 146, 1)" stroke-width="2"></path>
+    </g>
+    <defs>
+        <mask id="SvgjsMask1978">
+            <rect width="1440" height="280" fill="#ffffff"></rect>
+        </mask>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" gradientUnits="userSpaceOnUse" id="SvgjsLinearGradient1979">
+            <stop stop-color="rgba(14, 42, 71, 1)" offset="0"></stop>
+            <stop stop-color="rgba(19, 50, 81, 1)" offset="0.79"></stop>
+        </linearGradient>
+    </defs>
+</svg>

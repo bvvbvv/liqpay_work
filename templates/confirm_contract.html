@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+<script>
+function startPayments() {
+    const formData = new FormData(document.getElementById('payForm'));
+
+    // заранее открываем окно, чтобы браузер не заблокировал popup
+    const win = window.open('about:blank', '_blank');
+    // const win2 = window.open('about:blank', '_blank'); // для открытия в новом окне
+
+    //fetch("{{ url_for('pay_confirm') }}", 
+    //debugger
+    //fetch('/pay_confirm',  
+    
+    // fetch("{{ url_for('test11') }}", 
+    fetch("{{ url_for('pay_confirm') }}", 
+        {
+        method: 'POST',
+        //headers: { 'Content-Type': 'application/json' },
+        //body: JSON.stringify(formData)
+         body: formData
+        }
+    )
+    .then(
+        resp => resp.json()
+    )
+    .then(data => {
+        if (data.payment_url) {
+            win.location = data.payment_url;   // Загружаем LiqPay в новом окне
+            const orderId = document.getElementById('order_id').value;
+            sessionStorage.setItem('order_id', orderId);
+            window.location.href = '/after_pay';   // Загружаем after_pay.html в старом окне
+            
+        } else {
+            win.close();  // Закрываем пустое окно, если ошибка
+            alert("Ошибка: не удалось получить ссылку оплаты");
+        }
+    })
+    .catch(() => {
+        win.close();
+        alert("Ошибка при запуске оплаты");
+    });
+}
+</script>
+
+
+<!-- <div class="container content-block"> -->
+
+<div style="text-align: center;">
+  <h2>Поповнення особистого рахунку</h2>
+</div>
+<div class="container-div">
+  <!-- <form class="simple-form" action="{{ url_for('form') }}" method="post" novalidate> -->
+   <form id="payForm" method="POST" action="{{ url_for('pay_confirm') }}">
+       <input type="hidden" id="order_id" name="order_id" value="{{order_id}}" />
+       <div style="font-size: smaller; border-style: solid; border-width: 1px; margin:auto;
+                width: 400px;  background-color: lightblue; min-height: 200px;" class="container-div">
+            <table  style="min-height: 180px; min-width: 90%;">
+                <tr style="max-height: 200px;">
+                    <td width="50%">  <div class="td_div_left">Договір №:</div>
+                    </td>
+                    <td>
+                        <div class="td_div_right">
+                            {{contract}}
+                        </div>
+                    </td>
+                </tr>  
+                 <tr style="max-height: 200px;">
+                    <td>
+                      <div class="td_div_left">ПІБ Абонента (скорочено)</div>
+                    </td>
+                    <td>
+                        <div class="td_div_right">
+                            {{short_name}}
+                        </div>
+                    </td>
+                </tr>  
+                <tr style="max-height: 200px;">
+                    <td>
+                      <div class="td_div_left">Зараз на О/Р :</div>
+                    </td>
+                    <td>
+                        <div class="td_div_right">
+                            {{account1_float}} грн.
+                        </div>
+                    </td>
+                </tr>  
+                <tr>
+                    <td colspan="2">
+                        <div style="font-size: smaller; color: red; text-align: center;">
+                            ВАЖЛИВО! Платіж буде проведено на вказаний Договір. </br>
+                             Введіть наступні дані:
+                        </div>
+                    </td>
+                </tr>  
+                <tr>
+                    <td>
+                        <div class="td_div_left">Cуму платежу, грн:</div>
+                    </td>
+                    <td>
+                        <div >
+                                <input type="text" id="amount" name="amount" value= '1.0' required 
+                                style="margin-left:20px;width:80px; text-decoration:none"> 
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="td_div_left">П.І.Б платника:</div>
+                    </td>
+                    <td>
+                        <div>
+                                <input type="text" id="payer_name" name="payer_name" value= 'Тест БВВ'  
+                                style="margin-left:20px;width:120px; text-decoration:none"> 
+                        </div>
+                    </td>
+                </tr>  
+                <tr style="min-height: 40px;">
+                    <td colspan="2">
+                        <div style="display: flex; justify-content: space-around;  align-items: center; min-height: 50px;  ">
+                        
+                            <div onclick="startPayments()" id="pay_action" name="pay_action" value="confirm_pay" class="div_like_btn" >Сплатити</div>
+                            <div id="pay_action" name="pay_action" value="cancel_pay" class="div_like_btn"> Повернутись </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>    
+       </div> 
+    </form>   
+</div>
+
+
+{% endblock %}

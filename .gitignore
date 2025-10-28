@@ -1,0 +1,11 @@
+archive/
+.vscode/
+__pycashe__/
+liqpay_sdk/
+*.pyc
+*.env
+*.txt
+*_loc.*
+*.php
+*.log
+*_old.*

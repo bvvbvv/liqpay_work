@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Переход к оплате</title>
+    <style>
+    body { background-image: url("{{ url_for('static', filename='5559852.jpg') }}"); background-size: cover;}
+</style>
+</head>
+<body onload="document.forms['liqpay_form'].submit();">
+    <form method="POST" action="https://www.liqpay.ua/api/3/checkout" name="liqpay_form">
+        <input type="hidden" name="data" value="{{ data }}">
+        <input type="hidden" name="signature" value="{{ signature }}">
+        <noscript>
+            <input type="submit" value="Перейти к оплате">
+        </noscript>
+    </form>
+</body>
+</html>

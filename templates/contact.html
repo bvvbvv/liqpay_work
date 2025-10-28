@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container content-block">
+  <h2>Contact</h2>
+
+  <form class="simple-form" action="{{ url_for('contact') }}" method="post" novalidate>
+    <label for="name">Имя</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="message">Сообщение</label>
+    <textarea id="message" name="message" rows="5" required></textarea>
+
+    <div style="margin-top:12px;">
+      <button class="btn" type="submit">Отправить</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
