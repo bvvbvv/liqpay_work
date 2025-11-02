@@ -11,15 +11,8 @@ def check_contract(contract, user_id_in):
         'user_id': user_id_in
     }
 
-    # Отправка POST-запроса
-    #response = requests.post('http://mytest.com/work/myscript.php', data=payload)
-    #print ("ch 555111")
-    #response = requests.post('liqpay/check_contract.php', data=payload)
-    #response = requests.get('http://liqpay/check_contract.php', params=payload)
-    #response = requests.get('http://pay_dipt/check_contract.php', params=payload)
     try:
-        response = requests.post('http://pay_dipt/check_contract.php', data=payload, timeout=3)
-        #response = requests.post('https://my-dipt.sns.net.ua/new/work_bvv/check_contract.php', data=payload, timeout=3)
+        response = requests.post('https://my-dipt.sns.net.ua/new/work_bvv/check_contract.php', data=payload, timeout=3)
     except requests.exceptions.Timeout:
         return 'not_find', '0', 'Не найдено', '0.0','Помилка: Перевищено час очікування відповіді сервера статистики.'
         
@@ -36,40 +29,11 @@ def check_contract(contract, user_id_in):
         if (is_find != 'success'):
             err_message = ' Договір № <b>' + contract + '</b> не знайдено.'
             
-       # print(f"#py_ch: is_find={is_find}, user_id={user_id}, full_name={full_name}, accoint1={account1}")
         return is_find, user_id, full_name, account1, err_message
     else:
         print(f"utility4sns: check_contract: Помилка запиту: {response.status_code}")
         return 'error', '0', 'Не найдено', '0.0', 'Помилка звернення до сервера статистики, код :<b>' + str(response.status_code)+'</b>'
     
-# def send2transaction(user_id, summ):
-#     import requests
-
-#     # Данные для отправки
-#     payload = {
-#         'summ': summ,
-#         'user_id': user_id
-#     }
-#     # Отправка POST-запроса
-#     #response = requests.post('http://mytest.com/work/myscript.php', data=payload)
-#     try:
-#         response = requests.post('http://pay_dipt/send2transaction.php', data=payload, timeout=3)
-#     except requests.exceptions.Timeout:
-#         return 'error', '0', 'Не найдено', '0.0','Помилка:  Перевищено час очікування відповіді сервера  transaction.'
-        
-
-#     # Проверка успешности запроса
-#     if response.status_code == 200:
-#         # Получение ответа в формате JSON
-#         result = response.json()
-#         # Извлечение данных
-#         res1 = result.get('res1')
-#         res2 = result.get('res2')
-#         print(f"res1={res1}, res2={res2}")
-#     else:
-#         print(f"utility4sns send2transaction:  Помилка запроса: {response.status_code}")
-#         return 'error', '0', 'Не найдено', '0.0', 'Помилка звернення до transaction, код <b>'+ str(response.status_code)+'</b>'
-  
 def send2sns_transaction(decoded_data):
     import requests, time, pytz, re
     import datetime
@@ -107,8 +71,7 @@ def send2sns_transaction(decoded_data):
         'transaction_is': transaction_id,
         'datepay':datepay    
     }
-    REMOTE_URL='http://pay_dipt/send2transaction.php'
-    #REMOTE_URL='https://my-dipt.sns.net.ua/new/work_bvv/send2transaction.php'
+    REMOTE_URL='https://my-dipt.sns.net.ua/new/work_bvv/send2transaction.php'
     for attempt in range(1, NMaxRequest + 1):
         try:
             response = requests.post(REMOTE_URL,data=payload,timeout=MaxSecond)      
@@ -126,23 +89,17 @@ def send2sns_transaction(decoded_data):
                     
         except requests.exceptions.Timeout:
             print(f"[Callback] attempt={attempt} Сервер {REMOTE_URL} не ответил за {MaxSecond} сек")
-            #return 'error', '0', 'Не найдено', '0.0','Сервер transaction {REMOTE_URL} не відповів за {MaxSecond} сек'
             return 'error','Сервер transaction {REMOTE_URL} не відповів за {MaxSecond} сек'
         except Exception as e:
             print(f"[Callback] Помилка соединения: {e}")
-            #return 'error', '0', 'Не найдено', '0.0','Помилка підключення до сервера transaction: {e}'
             return 'error', 'Помилка підключення до сервера transaction: {e}'
         
         time.sleep(SleepSecond)  # задержка между попытками
 
     if not success:
         print("[Callback] Не удалось отправить данные на удалённый сервер после всех попыток")
-        #return 'error', '0', 'Не найдено', '0.0','Не вдалось підключитись до сервера transaction після всіх спроб'
         return 'error', 'Не вдалось підключитись до сервера transaction після всіх спроб'
 
-    # Обязательно вернуть LiqPay "success", иначе они снова дернут callback!
-    #return "success", 200
-    
     else:
      #обновляем иаблицу payments_acquire
         conn=get_db_connection()
@@ -162,14 +119,7 @@ def send2sns_transaction(decoded_data):
         conn.close()
         print(f" ***** Success Update table payments_acquire : {updated_row_count}")     
         return "success",''
-    #    ##--------------
-    #    # отправляем подтверждение отправки на сервер transaction
-    #     new_account= new_account1/100
-    #     with app.test_client() as client:
-    #         response = client.post(
-    #             '/success_transaction',  # URL-адрес вашего маршрута
-    #             data={'kyivTime': datepay, 'contract':contract, 'amount':amount,'new_account1':new_account}   # имитация form-data
-    #)
+    
         
 def make_short_name(full_name):
 
@@ -191,7 +141,7 @@ def make_short_name(full_name):
 
 def get_db_connection():
     import psycopg2
-    from liqpay_config_loc import LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY,DB
+    from liqpay_config import LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY,DB
     try:
         conn = psycopg2.connect(
         host=DB["host"],
@@ -217,7 +167,6 @@ def insert_after_find_contract(contract, user_id, abonent_name, account1):
         """, (order_id, contract, user_id, abonent_name, account1,"after_find_contract") 
     )
     insert_id = cur.fetchone()[0]
-    print(f"## ins 555 insert_id={insert_id} order_id={order_id}")
     conn.commit()
     cur.close()
     conn.close()
@@ -233,7 +182,6 @@ def get_after_find_contract(order_id):
     row = cur.fetchone()
     if row:
         contract, abonent_name, user_id = row
-        #print("Одна строка:", contract, abonent_name)
     else:
         print("Нет данных")
     
@@ -366,20 +314,4 @@ def get_os_param():
         is_ngrok = False #(для боевого сервера)
     return debug, is_windows, is_ngrok
     
-    
-    # os_release=platform.release()
-    # os_version=platform.version()
-    # machine=platform.machine()
-    # processor=platform.processor()
-    # python_version=platform.python_version()
-    # cwd=os.getcwd()
-    # return {
-    #     "os_name":os_name,
-    #     "os_release":os_release,
-    #     "os_version":os_version,
-    #     "machine":machine,
-    #     "processor":processor,
-    #     "python_version":python_version,
-    #     "cwd":cwd
-    # }
 
