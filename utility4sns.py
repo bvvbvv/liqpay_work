@@ -38,7 +38,6 @@ def send2sns_transaction(decoded_data):
     import requests, time, pytz, re
     import datetime
     from datetime import datetime as dt
-    from app_test_loc import app
     NMaxRequest=5
     MaxSecond = 5
     SleepSecond=3
