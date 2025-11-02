@@ -22,7 +22,7 @@ function startPayments() {
             win.location = data.payment_url;   // Загружаем LiqPay в новом окне
             const orderId = document.getElementById('order_id').value;
             sessionStorage.setItem('order_id', orderId);
-            window.location.href = '/after_pay';   // Загружаем after_pay.html в старом окне
+            window.location.href = '/wait_transaction';   // Загружаем wait_transaction.html в старом окне
             
         } else {
             win.close();  // Закрываем пустое окно, если ошибка
@@ -113,6 +113,7 @@ function startPayments() {
                         <div style="display: flex; justify-content: space-around;  align-items: center; min-height: 50px;  ">
                         
                             <div onclick="startPayments()" id="pay_action" name="pay_action" value="confirm_pay" class="div_like_btn" >Сплатити</div>
+                            <!-- <button  id="pay_action" name="pay_action" value="confirm_pay" class1="div_like_btn" >Сплатити</button> -->
                             <div id="pay_action" name="pay_action" value="cancel_pay" class="div_like_btn"> Повернутись </div>
                         </div>
                     </td>

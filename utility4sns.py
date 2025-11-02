@@ -1,6 +1,7 @@
 from datetime import time
 
 
+
 def check_contract(contract, user_id_in):
     import requests
 
@@ -17,8 +18,8 @@ def check_contract(contract, user_id_in):
     #response = requests.get('http://liqpay/check_contract.php', params=payload)
     #response = requests.get('http://pay_dipt/check_contract.php', params=payload)
     try:
-        #response = requests.post('http://pay_dipt/check_contract.php', data=payload, timeout=3)
-        response = requests.post('https://my-dipt.sns.net.ua/new/work_bvv/check_contract.php', data=payload, timeout=3)
+        response = requests.post('http://pay_dipt/check_contract.php', data=payload, timeout=3)
+        #response = requests.post('https://my-dipt.sns.net.ua/new/work_bvv/check_contract.php', data=payload, timeout=3)
     except requests.exceptions.Timeout:
         return 'not_find', '0', 'Не найдено', '0.0','Помилка: Перевищено час очікування відповіді сервера статистики.'
         
@@ -73,6 +74,7 @@ def send2sns_transaction(decoded_data):
     import requests, time, pytz, re
     import datetime
     from datetime import datetime as dt
+    from app_test_loc import app
     NMaxRequest=5
     MaxSecond = 5
     SleepSecond=3
@@ -91,6 +93,10 @@ def send2sns_transaction(decoded_data):
     match=re.search(r"\s#(\d{1,7})#;", description)
     if(match):
         user_id=match.group(1)
+        
+    match=re.search(r"\s№(\d{3,7});", description)
+    if(match):
+        contract=match.group(1)
     
     amount = decoded_data['amount']
     order_id = decoded_data['order_id']
@@ -101,38 +107,38 @@ def send2sns_transaction(decoded_data):
         'transaction_is': transaction_id,
         'datepay':datepay    
     }
-    #REMOTE_URL='http://pay_dipt/send2transaction.php'
-    REMOTE_URL='https://my-dipt.sns.net.ua/new/work_bvv/send2transaction.php'
+    REMOTE_URL='http://pay_dipt/send2transaction.php'
+    #REMOTE_URL='https://my-dipt.sns.net.ua/new/work_bvv/send2transaction.php'
     for attempt in range(1, NMaxRequest + 1):
         try:
-            response = requests.post(REMOTE_URL,data=payload,timeout=MaxSecond)
-        except requests.exceptions.Timeout:
-        
-            
+            response = requests.post(REMOTE_URL,data=payload,timeout=MaxSecond)      
             # Если удалённый сервер ответил
             if response.status_code == 200:
                 try:
                     resp_json = response.json()
                     if resp_json.get("result") == "OK":
-                      #  print("[Callback] Удалённый сервер подтвердил приём (OK)")
+                        print("[Callback] Удалённый сервер подтвердил приём (OK)")
                         success = True
                         response_text = response.text
                         break
                 except:
                     print("[Callback] Ответ сервера не JSON. Продолжаем попытки...")
-
+                    
         except requests.exceptions.Timeout:
-            print(f"[Callback] Сервер {REMOTE_URL} не ответил за {MaxSecond} сек")
-            return 'error', '0', 'Не найдено', '0.0','Сервер transaction {REMOTE_URL} не відповів за {MaxSecond} сек'
+            print(f"[Callback] attempt={attempt} Сервер {REMOTE_URL} не ответил за {MaxSecond} сек")
+            #return 'error', '0', 'Не найдено', '0.0','Сервер transaction {REMOTE_URL} не відповів за {MaxSecond} сек'
+            return 'error','Сервер transaction {REMOTE_URL} не відповів за {MaxSecond} сек'
         except Exception as e:
             print(f"[Callback] Помилка соединения: {e}")
-            return 'error', '0', 'Не найдено', '0.0','Помилка підключення до сервера transaction: {e}'
+            #return 'error', '0', 'Не найдено', '0.0','Помилка підключення до сервера transaction: {e}'
+            return 'error', 'Помилка підключення до сервера transaction: {e}'
         
         time.sleep(SleepSecond)  # задержка между попытками
 
     if not success:
         print("[Callback] Не удалось отправить данные на удалённый сервер после всех попыток")
-        return 'error', '0', 'Не найдено', '0.0','Не вдалось підключитись до сервера transaction після всіх спроб'
+        #return 'error', '0', 'Не найдено', '0.0','Не вдалось підключитись до сервера transaction після всіх спроб'
+        return 'error', 'Не вдалось підключитись до сервера transaction після всіх спроб'
 
     # Обязательно вернуть LiqPay "success", иначе они снова дернут callback!
     #return "success", 200
@@ -155,7 +161,15 @@ def send2sns_transaction(decoded_data):
         cur.close()
         conn.close()
         print(f" ***** Success Update table payments_acquire : {updated_row_count}")     
-        
+        return "success",''
+    #    ##--------------
+    #    # отправляем подтверждение отправки на сервер transaction
+    #     new_account= new_account1/100
+    #     with app.test_client() as client:
+    #         response = client.post(
+    #             '/success_transaction',  # URL-адрес вашего маршрута
+    #             data={'kyivTime': datepay, 'contract':contract, 'amount':amount,'new_account1':new_account}   # имитация form-data
+    #)
         
 def make_short_name(full_name):
 
@@ -262,6 +276,14 @@ def update_payments_aquire(decoded_data):
     bank_transaction_id=decoded_data['transaction_id']
     conn=get_db_connection()
     cur = conn.cursor()
+    # Сначала нужно проверить, есть ли запись с таким order_id
+    cur.execute("SELECT COUNT(*) FROM payments_acquire WHERE order_id = %s and status=%s", (order_id,'success:sns'))
+    count = cur.fetchone()[0]
+    if count > 0:
+        print(f" Record with order_id={order_id} already has status 'success:sns'. No update performed.")
+        cur.close()
+        conn.close()
+        return 0  # Возвращаем 0, чтобы указать, что обновление не было выполнено
     cur.execute("""
         update payments_acquire set amount =%s, payment_date= %s, status= %s,
         liqpay_order_id= %s, payer_name= %s, sender_full_name= %s, sender_bank= %s, 
@@ -275,19 +297,40 @@ def update_payments_aquire(decoded_data):
     print(f" Success Update table payments_acquire : {updated_row_count}")
     return updated_row_count
 
+def error_payments_aquire(decoded_data):
+    import re
+    
+    order_id = decoded_data['order_id']
+    status = decoded_data['status']
+    err_message=decoded_data.get('err_description','')
+    err_code=decoded_data.get('err_code','')
+    err_message=f"{err_code}: {err_message}"
+    conn=get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        update payments_acquire set status= %s, err_message= %s where order_id= %s
+        """, ( status, err_message, order_id)
+    )
+    updated_row_count = cur.rowcount
+    conn.commit()
+    cur.close()
+    conn.close()
+    print(f" Success Set ErrorMessage table payments_acquire : {updated_row_count}")
+    return updated_row_count
+
 def check_pay_status(order_id):
     from flask import jsonify
     conn=get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     select status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1,
-    payment_date  from payments_acquire where order_id= %s
+    payment_date, err_message  from payments_acquire where order_id= %s
     """, (order_id, )
     )
     row = cur.fetchone()
     if row:
-        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date = row
-        print("@@@ get_payments_status:", status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1 )
+        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message = row
+        print("##^^##utility2sns check_pay_status ", status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, err_message)
     else:
         print("Нет данных")
     
@@ -304,6 +347,7 @@ def check_pay_status(order_id):
         "sender_full_name":sender_full_name,
         "old_account1":old_account1,
         "new_account1":new_account1,
+        "err_message":err_message,
         "payment_date":payment_date
     })
     return data_json

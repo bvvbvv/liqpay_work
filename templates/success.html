@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container content-block result success">
-  <h2>Успешно!</h2>
-  <p>{{ message or "Операция успешно завершена." }}</p>
-  <a class="btn" href="{{ url_for('index') }}">На главную</a>
-</div>
-{% endblock %}

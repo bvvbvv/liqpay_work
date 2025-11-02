@@ -9,3 +9,4 @@ liqpay_sdk/
 *.php
 *.log
 *_old.*
+liqpay_config.py

@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block content %}
+<script>
+    async function check_pay_status() //т.к.fetch асинхронний, нужно использовать async/await
+    {
+        // if(sessionStorage.getItem('Pay_success')) return;
+        const options = {
+            //timeZone: "Europe/Kyiv",
+           timeZone: "Europe/London",
+            hour12: false,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+            };
+        let order_id = '';
+        let is_find=0;
+        //debugger
+        if ("{{order_id}}") {
+            order_id = "{{order_id}}";
+        }
+        if (order_id.length === 0) {
+            order_id = sessionStorage.getItem('order_id');
+        }
+        if (!order_id) {
+            document.getElementById('PayResult').innerHTML = "Помилка: order_id відсутній";
+        } else 
+        {
+            //document.getElementById('orderIdDisplay').innerHTML=order_id; // Не потрібно
+            const response = await fetch(`/check_payments_status?order_id=${order_id}`);
+            //debugger
+            const data =  await response.json();
+            const utc_time=new Date(data.payment_date); // 
+            console.log("UTC Time:", utc_time);
+            const kyivTime = new Intl.DateTimeFormat("uk-UA", options).format(utc_time);
+            if (data.status === 'success:sns')
+            {
+                is_find=1;
+                //sessionStorage.setItem('Pay_success','1');
+                
+                console.log("Wait_transaction.html Success:sns");
+                document.getElementById('PayResult').innerHTML = `                        
+                <div id="ResultPay" style="height:240px; display:flex; justify-content: center; ">
+                    <form id="RepeatForm" method="POST" action="{{ url_for('repeat_pay') }}">
+                        <div style="font-size: smaller; border-style: solid; border-width: 1px; margin:auto;
+                            width: 360px;  background-color: lightblue; min-height: 200px;" class="container-div">
+                            <table  style="min-height: 180px;" class="centered-table">
+                                <tr style="max-height: 200px;">
+                                    <td width="50%"><div class="td_div_left">Дата платежу:</div>
+                                    </td>
+                                    <td>
+                                        <div <div class="td_div_right"> ${kyivTime} </div>
+                                    </td>
+                                </tr>  
+                                <tr>
+                                <td width="50%"> <div class="td_div_left"> Договір №:</div>
+                                </td>
+                                <td>
+                                    <div <div class="td_div_right"> ${data.contract}</div>
+                                </td>
+                                </tr>  
+                                <tr style="max-height: 200px;">
+                                    <td>
+                                        <div class="td_div_left"> Зарахована сумма </div>
+                                    </td>
+                                    <td>
+                                        <div class="td_div_right"> ${data.amount} грн.</div>
+                                    </td>
+                                </tr>  
+                                <tr style="max-height: 200px;">
+                                    <td>
+                                    <div class="td_div_left">Залишок на О/Р</div>
+                                    </td>
+                                    <td>
+                                        <div class="td_div_right">${parseInt(data.new_account1)/100} грн.</div>
+                                    </td>
+                                </tr>  
+                                <tr style="min-height: 40px;">
+                                    <td colspan="2">
+                                        <div style="display: flex; justify-content: space-around;  align-items: center; min-height: 50px;  ">
+                                            <button class="btn" id="repeat_pay" name="repeat_pay"  > Повернутись до cплати</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>    
+                        </div>    
+                    </form>   
+                </div> 
+                ` ;                  
+            } else if (data.status == 'success:bank')
+            { // Оплата пройшла, але очікується підтвердження від transaction
+               
+                is_find=1
+                document.getElementById('PayResult').innerHTML = `
+                <div id="ResultPay" style="height:240px; display:flex; justify-content: center; ">
+                    <form method="POST" action="{{ url_for('check_payments_status') }}">
+                        <input type="hidden" id="order_id" name="order_id" value="{{order_id}}">
+                        <div style="font-size: smaller; border-style: solid; border-width: 1px; margin:auto;
+                            width: 360px;  background-color: lightblue; min-height: 200px;" class="container-div">
+                            <table  style="min-height: 180px;" class="centered-table">
+                                <tr style="max-height: 200px;">
+                                    <td colspan="2"><div style="text-align:center; font-size:x-small; color:#a94fb4">Платіж був проведений банком,</br> 
+                                        але на О/Р він не зарахован. </br>
+                                        ${data.err_message ? data.err_message : ''} </br>
+                                        Ми розглянемо цей випадок і зарахуємо платіж на О/Р пізніше.</br>
+                                         </div>
+                                    </td>
+                                </tr>  
+                                <tr style="max-height: 200px;">
+                                    <td width="50%"><div class="td_div_left">Дата платежу:</div>
+                                    <td>
+                                        <div <div class="td_div_right"> ${kyivTime} </div>
+                                    </td>
+                                </tr>  
+                                <tr>
+                                <td width="50%"> <div class="td_div_left"> Договір №:</div>
+                                </td>
+                                <td>
+                                    <div <div class="td_div_right"> ${data.contract}</div>
+                                </td>
+                                </tr>  
+                                <tr style="max-height: 200px;">
+                                    <td>
+                                        <div class="td_div_left"> Сплачена сумма:</div>
+                                    </td>
+                                    <td>
+                                        <div class="td_div_right"> ${data.amount} грн.</div>
+                                    </td>
+                                </tr>  
+                                <tr style="min-height: 40px;">
+                                    <td colspan="2">
+                                        <div style="display: flex; justify-content: space-around;  align-items: center; min-height: 50px;  ">
+                                            <div class="div_like_btn" id="check_status" name="check_status" onclick="check_pay_status()" > Ще раз перевірити </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>    
+                        </div>    
+                    </form>   
+                </div> 
+                ` ;                  
+            } else if (data.err_message && data.err_message.length >0){
+                //debugger
+                // Статус	       Значение
+                // success     	Платёж успешно завершён
+                // failure	        Ошибка на этапе банка или эквайера
+                //             "err_code": "bank_decline",
+                //              "err_description": "Transaction declined by the issuing bank",
+                // error	        Внутренняя ошибка LiqPay
+                // reversed	    Возврат платежа
+                // sandbox     	Тестовый платёж
+                // wait_secure / wait_accept	Ожидает подтверждения банком или 3DS
+                // Error code: #{err_code}# ; %{err_message}%
+                if (data.status == 'failure') {
+                    err_descr='Виникла помилка на етапі банку або еквайера.';
+                } else if (data.status == 'error') {
+                    err_descr='Виникла внутрішня помилка LiqPay.';
+                } else if (data.status == 'reversed') { 
+                    err_descr='Платіж було повернено.';
+                } else if (data.status == 'wait_secure' || data.status == 'wait_accept') {
+                    err_descr='Платіж очікує підтвердження банком або 3DS.';
+                }
+                else {
+                    err_descr='Виникла технічна помилка.';
+                }
+                document.getElementById('PayResult').innerHTML = `
+                <div id="ResultPay" style="height:240px; display:flex; justify-content: center; ">
+                    <form method="POST" action="{{ url_for('check_payments_status') }}">
+                        <input type="hidden" id="order_id" name="order_id" value="{{order_id}}">
+                        <div style="font-size: smaller; border-style: solid; border-width: 1px; margin:auto;
+                            width: 360px;  background-color: lightblue; min-height: 200px;" class="container-div">
+                            <table  style="min-height: 180px;" class="centered-table">
+                                <tr style="max-height: 200px;">
+                                    <td colspan="2"><div style="text-align:center; text-decoration: underline; font-size: smaller; color:#a94fb4">
+                                        ${err_descr}</br>
+                                        ${data.err_message ? data.err_message : ''} </br>
+                                         </div>
+                                    </td>
+                                </tr>  
+                                <tr style="max-height: 200px;">
+                                    <td width="50%"><div class="td_div_left">Дата платежу:</div>
+                                    <td>
+                                        <div <div class="td_div_right"> ${kyivTime} </div>
+                                    </td>
+                                </tr>  
+                                <tr>
+                                <td width="50%"> <div class="td_div_left"> Договір №:</div>
+                                </td>
+                                <td>
+                                    <div <div class="td_div_right"> ${data.contract}</div>
+                                </td>
+                                </tr>  
+                                
+                                <tr style="min-height: 40px;">
+                                    <td colspan="2">
+                                        <div style="display: flex; justify-content: space-around;  align-items: center; min-height: 50px;  ">
+                                            <button class="btn" id="repeat_pay" name="repeat_pay"  > Повернутись до cплати</button
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>    
+                        </div>    
+                    </form>   
+                </div> 
+                ` ;  
+                
+            }
+        } // else order_id
+    } // function 
+// window.addEventListener("pageshow", function(event) {
+//     const now=new Date();
+//     nowtime=now.toLocaleTimeString();
+//     console.log(nowtime+" | Страница Wait Transaction.HTML выведена на вкладку", event.persisted ? "(из кэша)" : "");
+//     check_pay_status();
+// });
+window.addEventListener("focus", () => {
+    const now=new Date();
+    nowtime=now.toLocaleTimeString();                      
+  console.log(nowtime," | Окно активно (вкладка выбрана)");
+});
+document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") {
+        //Должно быть только одно событие !!
+        const now=new Date();
+        nowtime=now.toLocaleTimeString()
+        console.log(nowtime+" |  Пользователь открыл или вернулся на вкладку  Wait Transaction.HTML!");
+        // Здесь можно вызвать проверку платежа
+        check_pay_status()
+    }
+});
+</script>
+
+<div style="text-align: center;">
+  <h2>Поповнення особистого рахунку</h2>
+  <!-- <p>Чекаємо на результат <span id="orderIdDisplay"></span></p> -->
+</div>
+
+<div  class="container-div" style="min-height: 250px; padding: 0px;">
+    <div  id="PayResult" class="container-div" style="min-height: 250px; padding: 0px;">
+        <form method="POST" action="{{ url_for('check_payments_status') }}">
+            <input type="hidden" id="order_id" name="order_id" value="{{order_id}}">
+            <div class="div_like_btn" id="check_status" name="check_status" onclick="check_pay_status()" > Перевірити результат платежу </button>
+        </form>    
+    </div>
+</div>
+{% endblock %}

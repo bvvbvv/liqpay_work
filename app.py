@@ -10,49 +10,68 @@ if os_name == 'Windows':
     debug = 1
     is_windows = True
     sys.path.insert(0,"/d:/Python Project/LiqPay_work")
+    from liqpay_config_loc import LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY,DB
 else:
     debug = 0
     is_windows = False  
     site.addsitedir("/usr/local/bin/pay_app/lib/python3.12/site-packages")
     sys.path.insert(0,"/var/www/pay.sns.net.ua/public_html")
+    from liqpay_config import LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY,DB
     
     
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import Flask,render_template,request, redirect, flash, jsonify
 from liqpay import LiqPay
-#from liqpay import liqpay
 import base64
 import json
-from liqpay_config_loc import LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY,DB
-import debugpy
-from utility4sns import get_os_param, check_contract, make_short_name, insert_after_find_contract, get_after_find_contract,  update_payments_aquire, check_pay_status, send2sns_transaction, get_db_connection
-# Конфигурация публичного URL вашего приложения ngrok
-#debug,is_windows, ngrok= get_os_param()
+
+from utility4sns import get_os_param, check_contract, make_short_name, insert_after_find_contract, get_after_find_contract,  update_payments_aquire, check_pay_status, send2sns_transaction, error_payments_aquire
 if (is_windows ):
     PUBLIC_BASE_URL = "https://nikole-populational-commensurately.ngrok-free.dev"
+
 else:
     PUBLIC_BASE_URL = "https://pay.sns.net.ua"
 
+import logging
+from flask import Flask
 
 app = Flask(__name__)
+
+# ---------------------------------------------------------
+# 🔧 Настройка логирования Flask
+# ---------------------------------------------------------
+
+# Путь к файлу лога (можно изменить)
+LOG_FILE = '/var/log/apache2/flask_app.log'
+
+# Создаём обработчик, если ещё не создан
+if not app.logger.handlers:
+    handler = logging.FileHandler(LOG_FILE)
+    handler.setLevel(logging.INFO)
+
+    # Формат лога: время, уровень, сообщение
+    formatter = logging.Formatter(
+        '%(asctime)s [%(levelname)s] %(message)s',
+        '%Y-%m-%d %H:%M:%S'
+    )
+    handler.setFormatter(formatter)
+
+    # Подключаем к логгеру Flask
+    app.logger.addHandler(handler)
+    app.logger.setLevel(logging.INFO)
+
+app = Flask(__name__)
+debug=1
 if(debug):print("!!! LiqPay_TEST app started $$$")
     
 @app.route('/')
 def index():
     return render_template('index.html', title="Home")
 
-@app.route('/about')
-def about():
-    return render_template('about.html', title="About Us")
-
 @app.route('/price')
 def price():
     return render_template('price.html', title="Price")
-
-@app.route('/send_contact')
-def send_contact():
-    return render_template('error.html', title="Send Error")
 
 @app.route('/security_politics')
 def security_politics(): #только полное имя файла, без расширения !!
@@ -61,19 +80,6 @@ def security_politics(): #только полное имя файла, без р
 @app.route('/oferta')
 def oferta(): #только полное имя фвайла !!
     return render_template('oferta.html')
-
-@app.route('/error')
-def error(): #только полное имя фвайла !!
-    return render_template('error.html')
-
-@app.route('/contact', methods=['GET', 'POST'])
-def contact():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        msg = request.form.get('message')
-        # Здесь можно сохранять сообщение или отправлять email
-        return render_template('success.html', message="Message sent. Thank you!")
-    return render_template('contact.html', title="Contact")
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
@@ -95,9 +101,7 @@ def form():
 
 @app.route('/pay_check_contract', methods=["POST"])
 def pay_check_contract(): #
-    if(debug):print ("pc 111")
     contract = request.form['contract']
-    if(debug):print ("pc 222")
     user_id=''
     if(debug):print(f"### contract {contract}")
     is_find, user_id, full_name, account1, err_message=check_contract(contract, user_id)
@@ -113,16 +117,10 @@ def pay_check_contract(): #
         if(debug):print(f" err_message={err_message}")
         return render_template('error.html',contract=contract, err_message=err_message)        
     
-@app.route('/pay_confirm', methods=['POST']) # Данные договора подтверждены проверкой из my_dipt.sns.net.ua
+@app.route('/pay_confirm', methods=['POST']) # Вызов из confirm_contract.html  
+# Данные договора подтверждены проверкой из my_dipt.sns.net.ua
 def pay_confirm():
     if(debug):print (f"777 pay_confirm called ")
-    # pay_action = request.form['pay_action']
-    # if(debug):print (f"777 pay_action {pay_action} ")
-    # if pay_action != 'confirm_pay' :
-    #     return render_template('form.html')
-    
-    # else :
-    #     return render_template('index.html')
     
     order_id = request.form['order_id']
     amount = request.form['amount']
@@ -146,13 +144,12 @@ def pay_confirm():
         #"result_url": "https://pay.sns.net.ua/result"
         "result_url": f"{PUBLIC_BASE_URL}/my_result",
     }
-    if(debug):print("confirm 333")
     signature = liqpay.cnb_signature(params)
-    data = liqpay.cnb_data(params)
+    data = liqpay.cnb_data(params) 
+    #Вызывется из JS confirm_contract.html в новом окне, 
+    # вместе с after_pay.html в родительском окне
     payment_url = f"https://www.liqpay.ua/api/3/checkout?data={data}&signature={signature}"
-    if(debug):print("confirm 444")
     return jsonify({"payment_url": payment_url})
-    #return render_template('liqpay_form.html', data=data, signature=signature)
     
 
 @app.route('/callback', methods=['POST'])
@@ -160,7 +157,7 @@ def callback():
     data = request.form.get('data')
     signature = request.form.get('signature')
     #if(debug):print("CALLBACK:", data)
-    if(debug):print("CALLBACK: \n" )
+    if(debug):print("### app.py: CALLBACK: \n" )
     liqpay = LiqPay(LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY)
     # проверка подлинности сообщения
     sign = liqpay.str_to_sign(LIQPAY_PRIVATE_KEY + data + LIQPAY_PRIVATE_KEY)
@@ -170,47 +167,38 @@ def callback():
     decoded_data = json.loads(base64.b64decode(data))
     if(decoded_data['currency'] != 'UAH'):
         return "Invalid currency: use UAH only !", 400
+    
+    if(decoded_data['status'] != 'success'):
+        if(debug):print(f" Payment status not success: {decoded_data['status']}")
+        error_payments_aquire(decoded_data) # обновляем статус в payments_acquire на неуспешный и записываем ошибку
+        return "Payment not success", 400
+    
     update_row_count=update_payments_aquire(decoded_data)
-    if(update_row_count == 1) :
-        send2sns_transaction(decoded_data)
-        return "success", 200
-    else:
-        return jsonify({"Update payments error": "ok"}), 400
+    if(update_row_count == 1) : #обновлена запись в payments_acquire
+        result, message=send2sns_transaction(decoded_data)
+        if(result != 'success'): # произошла ошибка при отправке в sns transaction
+            if(debug):print(f" Send to SNS error: {message}")
+            decoded_data['status']='error:sns'
+            decoded_data['err_description']=message
+            error_payments_aquire(decoded_data) #обновляем статус в payments_acquire на error и записываем ошибку
+            # будет повторная попытка из liqpay
+            return "error", 400
+        else: # запись обновлена и отправлена в sns transaction
+            if(debug):print(" Update payments success ")    
+            return "success", 200
+    else: #запись не обновлена, т.к. уже была со статусом success:sns
+            if(debug):print(" Record already updated to success:sns, no action taken ")    
+            return "success", 200
 
-@app.route('/my_result', methods=['POST'])
+@app.route('/my_result', methods=['GET','POST'])
 def my_result():
     if(debug):print ("555 In Result")
     return render_template('close_cur_window.html')
-    #data = request.form.get('data')
-    #signature = request.form.get('signature')
-    # Декодировать data
-    #decoded_data = json.loads(base64.b64decode(data).decode('utf-8'))
-    # decoded_data = json.loads(base64.b64decode(data))
-    # order_id=decoded_data.get('order_id')
-    return render_template('after_pay.html', order_id=order_id) 
-    # Тут можно показать пользователю страницу "успех/ошибка"
-    # return f"""
-    #     <h1>Статус платежу: {decoded_data.get('status')}</h1>
-    #     <p>Сума: {decoded_data.get('amount')}</p>
-    #     <p>Договір: {decoded_data.get('order_id')}</p>
-    #     <p>Маска карти: {decoded_data.get('sender_card_mask2')}</p>
-    #     <p>Дякуємо за оплату!</p>
-    # """
-
-@app.route('/test_after_pay')
-def test_after_pay():
-    if(debug):print(f" Test After_pay")
-    return render_template('after_pay.html',order_id='294f7625-2094-4778-8eb4-38f452189381')
-
-@app.route('/after_pay')
-def after_pay():
-    if(debug):print(f" After_pay")
-    return render_template('after_pay.html')
-
-@app.route('/send_message')
-def send_message():
-    if(debug):print(f" Send Message After_pay")
-    return render_template('error.html')
+    
+@app.route('/wait_transaction') # Вызов из JS confirm_contract.html вместе с открытием окна LiqPay оплаты
+def wait_transaction():
+    if(debug):print(f" Wait_transaction result")
+    return render_template('wait_transaction.html')
 
 @app.route('/repeat_pay', methods=['POST'])
 def repeat_pay():
@@ -225,7 +213,7 @@ def check_payments_status():
     json_text=data.get_data(as_text=True)
     parsed=json.loads(json_text)
     status=parsed['status']
-    if(debug):print(f"==check_status ncount={ncount}; status={status}")
+    if(debug):print(f" ==check_status ncount={ncount}; status={status}")
     return parsed
 
 #=======================================
