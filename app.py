@@ -101,7 +101,7 @@ def form():
 
 
 @app.route('/form_work', methods=['GET', 'POST'])
-def form():
+def form_work():
     if request.method == 'POST':
         contract = request.form.get('contract')
         amount = request.form.get('amount')
