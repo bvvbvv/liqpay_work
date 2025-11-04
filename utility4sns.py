@@ -211,16 +211,16 @@ def update_payments_aquire(decoded_data):
     dt_kyiv = dt_utc.astimezone(kyiv_tz)
     payment_date = dt_kyiv.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
    
-    order_id = decoded_data['order_id']
-    status = decoded_data['status']+':bank'
-    amount = decoded_data['amount']
-    sender_first_name = decoded_data["sender_first_name"]
-    sender_last_name = decoded_data["sender_last_name"]
+    order_id = decoded_data.get('order_id','')
+    status = decoded_data.get('status','')+':bank'
+    amount = decoded_data.get('amount','')
+    sender_first_name = decoded_data.get("sender_first_name",'')
+    sender_last_name = decoded_data.get("sender_last_name",'')
     sender_full_name=sender_first_name +' '+ sender_last_name
-    mask2 = decoded_data["sender_card_mask2"]
-    sender_bank = decoded_data["sender_card_bank"]
-    liqpay_order_id = decoded_data['liqpay_order_id']
-    bank_transaction_id=decoded_data['transaction_id']
+    mask2 = decoded_data.get("sender_card_mask2",'')
+    sender_bank = decoded_data.get("sender_card_bank",'')
+    liqpay_order_id = decoded_data.get('liqpay_order_id','')
+    bank_transaction_id=decoded_data.get('transaction_id','')
     conn=get_db_connection()
     cur = conn.cursor()
     # Сначала нужно проверить, есть ли запись с таким order_id
