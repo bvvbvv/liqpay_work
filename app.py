@@ -10,7 +10,7 @@ if os_name == 'Windows':
     debug = 1
     is_windows = True
     sys.path.insert(0,"/d:/Python Project/LiqPay_work")
-    from liqpay_config_loc import LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY,DB
+    from liqpay_config import LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY,DB
 else:
     debug = 0
     is_windows = False  
