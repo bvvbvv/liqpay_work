@@ -99,6 +99,25 @@ def form():
             return render_template('error.html', message=str(e))
     return render_template('form.html', title="Connect")
 
+
+@app.route('/form_work', methods=['GET', 'POST'])
+def form():
+    if request.method == 'POST':
+        contract = request.form.get('contract')
+        amount = request.form.get('amount')
+        # Простая валидация: contract - цифры, amount - положительное число
+        try:
+            if not contract or not contract.strip().isdigit():
+                raise ValueError("Помилка: Невірний номер договору")
+            a = float(amount)
+            if a <= 0:
+                raise ValueError("Помилка: Невірна сума платежу")
+            # Успешный результат
+            return render_template('success.html', message=f"Payment for contract {contract} of €{a:.2f} accepted.")
+        except Exception as e:
+            return render_template('error.html', message=str(e))
+    return render_template('form_work.html', title="Connect")
+
 @app.route('/pay_check_contract', methods=["POST"])
 def pay_check_contract(): #
     contract = request.form['contract']
