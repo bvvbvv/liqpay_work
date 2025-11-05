@@ -85,6 +85,7 @@ def oferta(): #только полное имя фвайла !!
 def form():
     if request.method == 'POST':
         contract = request.form.get('contract')
+        contract=re.sub(r'^0+', '', contract)
         amount = request.form.get('amount')
         # Простая валидация: contract - цифры, amount - положительное число
         try:
@@ -93,8 +94,7 @@ def form():
             a = float(amount)
             if a <= 0:
                 raise ValueError("Помилка: Невірна сума платежу")
-            # Успешный результат
-            return render_template('success.html', message=f"Payment for contract {contract} of €{a:.2f} accepted.")
+            
         except Exception as e:
             return render_template('error.html', message=str(e))
     return render_template('form.html', title="Connect")
@@ -104,6 +104,7 @@ def form():
 def form_work():
     if request.method == 'POST':
         contract = request.form.get('contract')
+        contract=re.sub(r'^0+', '', contract)
         amount = request.form.get('amount')
         # Простая валидация: contract - цифры, amount - положительное число
         try:
@@ -113,7 +114,7 @@ def form_work():
             if a <= 0:
                 raise ValueError("Помилка: Невірна сума платежу")
             # Успешный результат
-            return render_template('success.html', message=f"Payment for contract {contract} of €{a:.2f} accepted.")
+           
         except Exception as e:
             return render_template('error.html', message=str(e))
     return render_template('form_work.html', title="Connect")
@@ -184,6 +185,7 @@ def callback():
         return "Invalid signature", 400
     
     decoded_data = json.loads(base64.b64decode(data))
+    if(debug):print(f"app.py: Callback: {decoded_data} \n")
     if(decoded_data['currency'] != 'UAH'):
         return "Invalid currency: use UAH only !", 400
     
@@ -191,9 +193,9 @@ def callback():
         if(debug):print(f" Payment status not success: {decoded_data['status']}")
         error_payments_aquire(decoded_data) # обновляем статус в payments_acquire на неуспешный и записываем ошибку
         return "Payment not success", 400
-    
+    update_row_count=0
     update_row_count=update_payments_aquire(decoded_data)
-    if(update_row_count == 1) : #обновлена запись в payments_acquire
+    if (update_row_count == 1) : #обновлена запись в payments_acquire
         result, message=send2sns_transaction(decoded_data)
         if(result != 'success'): # произошла ошибка при отправке в sns transaction
             if(debug):print(f" Send to SNS error: {message}")
@@ -205,8 +207,15 @@ def callback():
         else: # запись обновлена и отправлена в sns transaction
             if(debug):print(" Update payments success ")    
             return "success", 200
-    else: #запись не обновлена, т.к. уже была со статусом success:sns
+        
+    elif(update_row_count == -1): #запись не обновлена, т.к. уже была со статусом success:sns
             if(debug):print(" Record already updated to success:sns, no action taken ")    
+            return "success", 200
+    else: #запись не обновлена, по причине ошибки пр
+            if(debug):print(f" Error in update_payments_acquire ", decoded_data)
+            decoded_data['status']='error:sns'
+            decoded_data['err_description']='Ошибка в обновлении записи payments_acquire'
+            error_payments_aquire(decoded_data) #обновляем статус в payments_acquire на error и записываем ошибку
             return "success", 200
 
 @app.route('/my_result', methods=['GET','POST'])
