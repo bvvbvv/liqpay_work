@@ -229,8 +229,8 @@ def update_payments_aquire(decoded_data):
     dt_utc = datetime.datetime.fromtimestamp(ts_sec, tz=datetime.timezone.utc)
     kyiv_tz = pytz.timezone("Europe/Kyiv")
     dt_kyiv = dt_utc.astimezone(kyiv_tz)
-    #payment_date = dt_kyiv.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
-    payment_date = dt_utc.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
+    payment_date = dt_kyiv.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
+    #payment_date = dt_utc.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
     updated_row_count=0
     order_id = decoded_data.get('order_id','')
     status = decoded_data.get('status','')+':bank'
@@ -259,7 +259,7 @@ def update_payments_aquire(decoded_data):
     cur.execute("""
         update payments_acquire set amount =%s, payment_date= %s, status= %s,
         liqpay_order_id= %s, payer_name= %s, sender_full_name= %s, sender_bank= %s, 
-        sender_card_mask2= %s, bank_transaction_id= %s, commition = %s, net_ammount= %s where order_id= %s
+        sender_card_mask2= %s, bank_transaction_id= %s, commission = %s, net_ammount= %s where order_id= %s
         """, (amount, payment_date, status, liqpay_order_id, payer_name,sender_full_name, sender_bank,  mask2, bank_transaction_id, commission, net_ammout, order_id)
     )
     updated_row_count = cur.rowcount

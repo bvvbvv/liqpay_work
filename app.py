@@ -5,6 +5,7 @@ import sys
 import site
 import os, re
 import platform
+import time
 os_name=platform.system()
 if os_name == 'Windows':
     debug = 1
@@ -64,6 +65,8 @@ app = Flask(__name__)
 #     app.logger.setLevel(logging.INFO)
     
     # === Настройка ротации логов ===
+# Устанавливаем локальное время (например, Киев, UTC+2/UTC+3 с учетом DST)
+logging.Formatter.converter = time.localtime
 log_formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
 
 # Создаём handler с ротацией по дате
@@ -125,9 +128,9 @@ def form():
             
         except Exception as e:
             if(debug):app.logger.error('Exception in form(): %s', str(e))
-            return render_template('error.html', message=str(e))
+            #return render_template('error.html', message=str(e))
         
-    return render_template('form.html', title="Connect")
+    return render_template('form.html', title="Платіж")
 
 
 @app.route('/form_work', methods=['GET', 'POST'])
@@ -148,9 +151,9 @@ def form_work():
             
         except Exception as e:
             if(debug):app.logger.error('Exception in form_work(): %s', str(e))
-            return render_template('error.html', message=str(e))
+           # return render_template('error.html', message=str(e))
         
-    return render_template('form_work.html', title="Connect")
+    return render_template('form_work.html', title="Платіж")
 
 @app.route('/pay_check_contract', methods=["POST"])
 def pay_check_contract(): #
