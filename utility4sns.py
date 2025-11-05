@@ -70,10 +70,13 @@ def send2sns_transaction(decoded_data):
     amount = decoded_data['amount']
     order_id = decoded_data['order_id']
     transaction_id=decoded_data['transaction_id']
+    commission=decoded_data.get('receiver_commission','0.0')
+    net_amount=float(amount)-float(commission)
     logger.info(f"utility4sns: send2sns_transaction: Start sending to SNS transaction: datepay={datepay}  contract={contract}, amount={amount},order_id={order_id}, user_id={user_id},  transaction_id={transaction_id}")
      # Подготовка данных для отправки
     payload = {
-        'amount': amount,
+        #'amount': amount,
+        'amount': net_amount,
         'user_id': user_id,
         'transaction_is': transaction_id,
         'datepay':datepay    
@@ -226,11 +229,14 @@ def update_payments_aquire(decoded_data):
     dt_utc = datetime.datetime.fromtimestamp(ts_sec, tz=datetime.timezone.utc)
     kyiv_tz = pytz.timezone("Europe/Kyiv")
     dt_kyiv = dt_utc.astimezone(kyiv_tz)
-    payment_date = dt_kyiv.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
+    #payment_date = dt_kyiv.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
+    payment_date = dt_utc.strftime("%Y-%m-%d %H:%M:%S")  # Например: 11-10-2025 15:30:12
     updated_row_count=0
     order_id = decoded_data.get('order_id','')
     status = decoded_data.get('status','')+':bank'
     amount = decoded_data.get('amount','')
+    commission=decoded_data.get('receiver_commission','0.0')
+    net_ammout=float(amount)-float(commission)
     sender_first_name = decoded_data.get("sender_first_name",'')
     sender_last_name = decoded_data.get("sender_last_name",'')
     sender_full_name=sender_first_name +' '+ sender_last_name
@@ -253,8 +259,8 @@ def update_payments_aquire(decoded_data):
     cur.execute("""
         update payments_acquire set amount =%s, payment_date= %s, status= %s,
         liqpay_order_id= %s, payer_name= %s, sender_full_name= %s, sender_bank= %s, 
-        sender_card_mask2= %s, bank_transaction_id= %s where order_id= %s
-        """, (amount, payment_date, status, liqpay_order_id, payer_name,sender_full_name, sender_bank,  mask2, bank_transaction_id, order_id)
+        sender_card_mask2= %s, bank_transaction_id= %s, commition = %s, net_ammount= %s where order_id= %s
+        """, (amount, payment_date, status, liqpay_order_id, payer_name,sender_full_name, sender_bank,  mask2, bank_transaction_id, commission, net_ammout, order_id)
     )
     updated_row_count = cur.rowcount
     conn.commit()
@@ -292,14 +298,14 @@ def check_pay_status(order_id):
     cur = conn.cursor()
     cur.execute("""
     select status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1,
-    payment_date, err_message  from payments_acquire where order_id= %s
+    payment_date, err_message, commission, net_ammount  from payments_acquire where order_id= %s
     """, (order_id, )
     )
     row = cur.fetchone()
     if row:
-        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message = row
+        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message, commission, net_ammount = row
         print("##^^##utility2sns check_pay_status ", status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, err_message)
-        logger.info(f"utility4sns: check_pay_status: Отримано статус платежу для order_id={order_id} : {status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, err_message={err_message}")
+        logger.info(f"utility4sns: check_pay_status: Отримано статус платежу для order_id={order_id} : {status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, err_message={err_message}, commission={commission}, net_ammount={net_ammount}")
     else:
         print("Нет данных")
         logger.error(f"utility4sns: check_pay_status: Для order_id={order_id} немає даних в таблиці payments_acquire")
@@ -320,8 +326,11 @@ def check_pay_status(order_id):
         "new_account1":new_account1,
         "err_message":err_message,
         "payment_date":payment_date
+        "commission":commission,
+        "net_ammount":net_ammount
     })
-    logger.info(f"utility4sns: check_pay_status: Повертаємо JSON статус платежу для order_id={order_id} : {data_json.get_data(as_text=True)}\n###################################\n")
+    #logger.info(f"utility4sns: check_pay_status: Повертаємо JSON статус платежу для order_id={order_id} : {data_json.get_data(as_text=True)}\n###################################\n")
+    logger.info(f"check_pay_status: status={status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, comission={commission}, net_ammount={net_ammount}, err_message={err_message}\n###################################\n")
     return data_json
 
 def get_os_param():

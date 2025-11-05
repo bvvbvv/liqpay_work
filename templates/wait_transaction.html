@@ -63,15 +63,31 @@
                                 </tr>  
                                 <tr style="max-height: 200px;">
                                     <td>
-                                        <div class="td_div_left"> Зарахована сумма </div>
+                                        <div class="td_div_left"> Сплачено: </div>
                                     </td>
                                     <td>
-                                        <div class="td_div_right"> ${data.amount} грн.</div>
+                                        <div class="td_div_right"> ${data.ammount} грн.</div>
                                     </td>
                                 </tr>  
                                 <tr style="max-height: 200px;">
                                     <td>
-                                    <div class="td_div_left">Залишок на О/Р</div>
+                                        <div class="td_div_left"> Комісія банку </div>
+                                    </td>
+                                    <td>
+                                        <div class="td_div_right"> ${data.commission} грн.</div>
+                                    </td>
+                                </tr>  
+                                <tr style="max-height: 200px;">
+                                    <td>
+                                        <div class="td_div_left"> Зараховано </div>
+                                    </td>
+                                    <td>
+                                        <div class="td_div_right"> ${data.net_ammount} грн.</div>
+                                    </td>
+                                </tr>  
+                                <tr style="max-height: 200px;">
+                                    <td>
+                                    <div class="td_div_left">Сума на О/Р</div>
                                     </td>
                                     <td>
                                         <div class="td_div_right">${parseInt(data.new_account1)/100} грн.</div>

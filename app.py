@@ -157,7 +157,7 @@ def pay_check_contract(): #
     contract = request.form['contract']
     user_id=''
     if(debug):print(f"### contract {contract}")
-    if(debug):app.logger.info(f"### contract {contract}")
+    #if(debug):app.logger.info(f"### contract {contract}")
     is_find, user_id, full_name, account1, err_message=check_contract(contract, user_id)
     if (is_find == 'success') :
         account1_float=round(account1/100,2)
@@ -176,14 +176,14 @@ def pay_check_contract(): #
 @app.route('/pay_confirm', methods=['POST']) # Вызов из confirm_contract.html  
 # Данные договора подтверждены проверкой из my_dipt.sns.net.ua
 def pay_confirm():
-    if(debug):print (f"777 pay_confirm called ")
-    if(debug):app.logger.info(f"777 pay_confirm called ")
+    #if(debug):print (f"777 pay_confirm called ")
+    #if(debug):app.logger.info(f"777 pay_confirm called ")
     
     order_id = request.form['order_id']
     amount = request.form['amount']
     payer_name = request.form['payer_name']
     test="test"
-    if(debug):print("confirm 111")
+    #if(debug):print("confirm 111")
     contract, abonent_name, user_id=get_after_find_contract(order_id)
     short_name=make_short_name(abonent_name)
     liqpay = LiqPay(LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY)
@@ -214,8 +214,8 @@ def callback():
     data = request.form.get('data')
     signature = request.form.get('signature')
     #if(debug):print("CALLBACK:", data)
-    if(debug):print("### app.py: CALLBACK: \n" )
-    if(debug):app.logger.info("### app.py: CALLBACK: ")
+    #if(debug):print("### app.py: CALLBACK: \n" )
+    #if(debug):app.logger.info("### app.py: CALLBACK: ")
     liqpay = LiqPay(LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY)
     # проверка подлинности сообщения
     sign = liqpay.str_to_sign(LIQPAY_PRIVATE_KEY + data + LIQPAY_PRIVATE_KEY)
@@ -224,7 +224,8 @@ def callback():
     
     decoded_data = json.loads(base64.b64decode(data))
     #if(debug):print(f"app.py: Callback: {decoded_data} \n")
-    if(debug):app.logger.info(f"app.py: Callback: {decoded_data} ")
+    #if(debug):app.logger.info(f"app.py: Callback: {decoded_data} ")
+    if(debug):app.logger.info(json.dumps(decoded_data, ensure_ascii=False, indent=2))
     
     if(decoded_data['currency'] != 'UAH'):
         if(debug):app.logger.error(f" Invalid currency: {decoded_data['currency']}")
