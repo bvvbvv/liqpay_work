@@ -1,4 +1,7 @@
 from datetime import time
+import logging
+
+logger = logging.getLogger('myapp')
 
 
 
@@ -14,6 +17,7 @@ def check_contract(contract, user_id_in):
     try:
         response = requests.post('https://my-dipt.sns.net.ua/new/work_bvv/check_contract.php', data=payload, timeout=3)
     except requests.exceptions.Timeout:
+        logger.error(f"utility4sns: check_contract: Помилка: Перевищено час очікування відповіді сервера статистики.")
         return 'not_find', '0', 'Не найдено', '0.0','Помилка: Перевищено час очікування відповіді сервера статистики.'
         
     # Проверка успешности запроса
@@ -28,10 +32,12 @@ def check_contract(contract, user_id_in):
         err_message='';
         if (is_find != 'success'):
             err_message = ' Договір № <b>' + contract + '</b> не знайдено.'
+            logger.error(f"utility4sns: check_contract: Договір № {contract} не знайдено.")
             
         return is_find, user_id, full_name, account1, err_message
     else:
         print(f"utility4sns: check_contract: Помилка запиту: {response.status_code}")
+        logger.error(f"utility4sns: check_contract: Помилка звернення до сервера статистики, код : {response.status_code}")  
         return 'error', '0', 'Не найдено', '0.0', 'Помилка звернення до сервера статистики, код :<b>' + str(response.status_code)+'</b>'
     
 def send2sns_transaction(decoded_data):
@@ -64,6 +70,8 @@ def send2sns_transaction(decoded_data):
     amount = decoded_data['amount']
     order_id = decoded_data['order_id']
     transaction_id=decoded_data['transaction_id']
+    logger.info(f"utility4sns: send2sns_transaction: Start sending to SNS transaction: datepay={datepay}  contract={contract}, amount={amount},order_id={order_id}, user_id={user_id},  transaction_id={transaction_id}")
+     # Подготовка данных для отправки
     payload = {
         'amount': amount,
         'user_id': user_id,
@@ -79,24 +87,30 @@ def send2sns_transaction(decoded_data):
                 try:
                     resp_json = response.json()
                     if resp_json.get("result") == "OK":
+                        logger.info(f"utility4sns: send2sns_transaction: Успішно відправлено дані на сервер transaction SNS: {resp_json}")  
                         print("[Callback] Удалённый сервер подтвердил приём (OK)")
                         success = True
                         response_text = response.text
                         break
                 except:
+                    logger.error(f"utility4sns: send2sns_transaction: Ответ сервера не JSON.{response} Продолжаем попытки...")    
                     print("[Callback] Ответ сервера не JSON. Продолжаем попытки...")
                     
         except requests.exceptions.Timeout:
             print(f"[Callback] attempt={attempt} Сервер {REMOTE_URL} не ответил за {MaxSecond} сек")
+            logger.error(f"utility4sns: send2sns_transaction: attempt={attempt} Помилка: Сервер transaction {REMOTE_URL} не відповів за {MaxSecond} сек")   
             return 'error','Сервер transaction {REMOTE_URL} не відповів за {MaxSecond} сек'
         except Exception as e:
             print(f"[Callback] Помилка соединения: {e}")
+            logger.error(f"utility4sns: send2sns_transaction: Помилка підключення до сервера transaction: {e}")
             return 'error', 'Помилка підключення до сервера transaction: {e}'
         
         time.sleep(SleepSecond)  # задержка между попытками
 
     if not success:
         print("[Callback] Не удалось отправить данные на удалённый сервер после всех попыток")
+        logger.error(f"utility4sns: send2sns_transaction: Не вдалось підключитись до сервера transaction після всіх спроб") 
+        
         return 'error', 'Не вдалось підключитись до сервера transaction після всіх спроб'
 
     else:
@@ -117,6 +131,7 @@ def send2sns_transaction(decoded_data):
         cur.close()
         conn.close()
         print(f" ***** Success Update table payments_acquire : {updated_row_count}")     
+        logger.info(f"utility4sns: send2sns_transaction: Успішно оновлено таблицю payments_acquire : {updated_row_count}")
         return "success",''
     
         
@@ -152,6 +167,7 @@ def get_db_connection():
         return conn
     except Exception as e:
         print("DB sns_pay_base connection error:", e)
+        logger.exception("DB sns_pay_base connection error: %s", e)
         return None # Возвращаем None в случае ошибки подключе
     
 def insert_after_find_contract(contract, user_id, abonent_name, account1):
@@ -169,6 +185,7 @@ def insert_after_find_contract(contract, user_id, abonent_name, account1):
     conn.commit()
     cur.close()
     conn.close()
+    logger.info(f"utility4sns: insert_after_find_contract: Inserted new record into payments_acquire with order_id={order_id}, contract={contract}, user_id={user_id}, abonent_name={abonent_name}, account1={account1}")   
     return order_id
 
 def get_after_find_contract(order_id):
@@ -228,9 +245,11 @@ def update_payments_aquire(decoded_data):
     count = cur.fetchone()[0]
     if count > 0:
         print(f" Record with order_id={order_id} already has status 'success:sns'. No update performed.")
+        logger.info(f"utility4sns: update_payments_aquire: Record with order_id={order_id} already has status 'success:sns'. No update performed.") 
         cur.close()
         conn.close()
         return -1  # Возвращаем -1, чтобы указать, что обновление не было выполнено
+    
     cur.execute("""
         update payments_acquire set amount =%s, payment_date= %s, status= %s,
         liqpay_order_id= %s, payer_name= %s, sender_full_name= %s, sender_bank= %s, 
@@ -242,6 +261,7 @@ def update_payments_aquire(decoded_data):
     cur.close()
     conn.close()
     print(f" Success Update table payments_acquire : {updated_row_count}")
+    logger.info(f"utility4sns: update_payments_aquire: Успішно оновлено таблицю payments_acquire : {updated_row_count}")    
     return updated_row_count
 
 def error_payments_aquire(decoded_data):
@@ -263,6 +283,7 @@ def error_payments_aquire(decoded_data):
     cur.close()
     conn.close()
     print(f" Success Set ErrorMessage table payments_acquire : {updated_row_count}")
+    logger.info(f"utility4sns: error_payments_aquire: Успішно оновлено таблицю payments_acquire : {updated_row_count}")
     return updated_row_count
 
 def check_pay_status(order_id):
@@ -278,8 +299,11 @@ def check_pay_status(order_id):
     if row:
         status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message = row
         print("##^^##utility2sns check_pay_status ", status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, err_message)
+        logger.info(f"utility4sns: check_pay_status: Отримано статус платежу для order_id={order_id} : {status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, err_message={err_message}")
     else:
         print("Нет данных")
+        logger.error(f"utility4sns: check_pay_status: Для order_id={order_id} немає даних в таблиці payments_acquire")
+        
     
     #print(f"## ins 555 insert_id={insert_id} order_id={order_id}")
     conn.commit()
@@ -297,6 +321,7 @@ def check_pay_status(order_id):
         "err_message":err_message,
         "payment_date":payment_date
     })
+    logger.info(f"utility4sns: check_pay_status: Повертаємо JSON статус платежу для order_id={order_id} : {data_json.get_data(as_text=True)}\n###################################\n")
     return data_json
 
 def get_os_param():

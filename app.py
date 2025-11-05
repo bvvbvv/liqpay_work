@@ -79,6 +79,13 @@ log_handler = TimedRotatingFileHandler(
 log_handler.suffix = "%d.%m.%Y"  # будет flask_app.log.05.11.2025 и т.п.
 log_handler.setFormatter(log_formatter)
 
+# Регистрируем общий логгер
+logger = logging.getLogger('myapp')     # <-- общий логгер для всех модулей
+logger.addHandler(log_handler)
+logger.setLevel(logging.INFO)
+logger.propagate = False
+# Привяжем логгер к Flask
+app.logger = logger
 
 debug=1
 if(debug):print("!!! LiqPay_TEST app started $$$")
@@ -265,6 +272,7 @@ def my_result():
 @app.route('/wait_transaction') # Вызов из JS confirm_contract.html вместе с открытием окна LiqPay оплаты
 def wait_transaction():
     if(debug):print(f" Wait_transaction result")
+    if(debug):app.logger.info(f" Wait_transaction result")
     return render_template('wait_transaction.html')
 
 @app.route('/repeat_pay', methods=['POST'])
