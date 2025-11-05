@@ -44,7 +44,8 @@ app = Flask(__name__)
 # ---------------------------------------------------------
 
 # Путь к файлу лога (можно изменить)
-LOG_FILE = '/var/log/apache2/flask_app.log'
+#LOG_FILE = '/var/log/apache2/flask_app.log'
+LOG_FILE = '/var/www/pay.sns.net.ua/public_html/log/flask_app.log'
 
 # Создаём обработчик, если ещё не создан
 # if not app.logger.handlers:
