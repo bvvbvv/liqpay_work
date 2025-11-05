@@ -122,7 +122,7 @@ def send2sns_transaction(decoded_data):
         
 def make_short_name(full_name):
 
-    last_name, sec_name, par_name = full_name.split()
+    last_name, sec_name, par_name,*rest = full_name.split()
     ln=len(last_name)
     
     if ln > 5:
