@@ -44,8 +44,7 @@ app = Flask(__name__)
 # ---------------------------------------------------------
 
 # Путь к файлу лога (можно изменить)
-#LOG_FILE = '/var/log/apache2/flask_app.log'
-LOG_FILE = '/var/www/pay.sns.net.ua/public_html/log/flask_app.log'
+#LOG_FILE = '/var/www/pay.sns.net.ua/public_html/log/flask_app.log'
 
 # Создаём обработчик, если ещё не создан
 # if not app.logger.handlers:
@@ -69,7 +68,7 @@ log_formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
 
 # Создаём handler с ротацией по дате
 log_handler = TimedRotatingFileHandler(
-    filename='/var/log/apache2/flask_app.log',  # базовое имя
+    filename='/var/www/pay.sns.net.ua/public_html/log/flask_app.log',  # базовое имя
     when='midnight',        # ротация каждый день в 00:00
     interval=1,             # каждые сутки
     backupCount=30,          # хранить 30 старых логов (удаляет старше)
