@@ -325,7 +325,7 @@ def check_pay_status(order_id):
         "old_account1":old_account1,
         "new_account1":new_account1,
         "err_message":err_message,
-        "payment_date":payment_date
+        "payment_date":payment_date,
         "commission":commission,
         "net_ammount":net_ammount
     })
