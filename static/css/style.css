@@ -335,6 +335,15 @@ body {
       text-decoration: underline; */
       /* text-align: center; */
 } 
+.no-spin::-webkit-inner-spin-button,
+.no-spin::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spin {
+  -moz-appearance: textfield;
+}
 
 /* ================== Result ================== */
 .result.success h2 { color: #28a745; }
