@@ -1,10 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script src="{{url_for('static', filename='js/jquery-3.7.1.min.js')}}"></script>
+<script src="{{url_for('static', filename='js/jquery.keyfilter.js')}}"></script>
+
+<script>
+$(function() {
+  $('#contract').keyfilter('numeric');
+  // $('#name').keyfilter('alpha');
+  // $('#email').keyfilter('email');
+  // $('#phone').keyfilter('phone');
+});
+</script>
+
+</script>
 <!-- <div class="container content-block"> -->
 <div style="text-align: center;">
   <h2>Поповнення особистого рахунку</h2>
-  <p>Вибачайте, поповнення особистого рахунку <br> тимчасово неможливо</p>
+  <p>Будь ласка, введіть номер Договору для поповнення О/Р</p>
 </div>
-
+<div class="container-div">
+  <!-- <form class="simple-form" action="{{ url_for('form') }}" method="post" novalidate> -->
+  <form action="/pay_check_contract" method="POST"> <!--форма данных до проверки номера договора -->
+    <table width="390px" style="min-height: 120px;" class="centered-table">
+      <tr style="min-height: 40px;">
+        <td width="50%">
+            <div style="text-align: right;">Введіть № Договіру:</div>
+        </td>
+        <td>
+            <div  style="text-align: left;">
+                <input type="number" id="contract" name="contract" maxlength="5" value= '' required 
+                style="margin-left:3px;width:80px;"> 
+            </div>
+        </td>
+      </tr>  
+      <tr style="min-height: 40px;">
+        <td colspan="2" align="center">
+           <button type="submit" id="pay_action" name="pay_action" value="confirm_pay" class="btn">Знайти</button>
+        </td>
+      </tr>
+    </table>    
+  </form>   
+</div>
 {% endblock %}
