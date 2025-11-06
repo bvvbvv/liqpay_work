@@ -75,8 +75,8 @@ def send2sns_transaction(decoded_data):
     logger.info(f"utility4sns: send2sns_transaction: Start sending to SNS transaction: datepay={datepay}  contract={contract}, amount={amount},order_id={order_id}, user_id={user_id},  transaction_id={transaction_id}")
      # Подготовка данных для отправки
     payload = {
-        #'amount': amount,
-        'amount': net_amount,
+        'amount': amount, # будем зачислять всю сумму с комісією, это наш платеж за пользование услугами LiqPay
+        #'amount': net_amount, # відправляємо чисту суму без комісії
         'user_id': user_id,
         'transaction_is': transaction_id,
         'datepay':datepay    

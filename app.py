@@ -65,7 +65,9 @@ app = Flask(__name__)
 #     app.logger.setLevel(logging.INFO)
     
     # === Настройка ротации логов ===
-# Устанавливаем локальное время (например, Киев, UTC+2/UTC+3 с учетом DST)
+# Переопределяем TZ (на уровне Python, без изменения системы)
+os.environ['TZ'] = 'Europe/Kyiv'
+time.tzset()
 logging.Formatter.converter = time.localtime
 log_formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
 
@@ -128,7 +130,7 @@ def form():
             
         except Exception as e:
             if(debug):app.logger.error('Exception in form(): %s', str(e))
-            #return render_template('error.html', message=str(e))
+            return render_template('error.html', message=str(e))
         
     return render_template('form.html', title="Платіж")
 
@@ -136,8 +138,11 @@ def form():
 @app.route('/form_work', methods=['GET', 'POST'])
 def form_work():
     if request.method == 'POST':
-        contract = request.form.get('contract')
+        contract = request.form.get('contract').strip()
         contract=re.sub(r'^0+', '', contract)
+        if not contract.isdigit():
+            return "Помилка: Номер Договору повинен мати тількі цифри", 400
+        
         amount = request.form.get('amount')
         # Простая валидация: contract - цифры, amount - положительное число
         try:
@@ -151,7 +156,7 @@ def form_work():
             
         except Exception as e:
             if(debug):app.logger.error('Exception in form_work(): %s', str(e))
-           # return render_template('error.html', message=str(e))
+            return render_template('error.html', message=str(e))
         
     return render_template('form_work.html', title="Платіж")
 

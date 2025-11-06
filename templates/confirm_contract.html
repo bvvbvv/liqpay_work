@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{url_for('static', filename='js/jquery-3.7.1.min.js')}}"></script>
+<script src="{{url_for('static', filename='js/jquery.keyfilter.js')}}"></script>
+
+<script>
+$(function() {
+  $('#contract').keyfilter('numeric');
+  $('#amount').keyfilter('float'); // цифры и точка/запятая
+ $('#payer_name').keyfilter('alpha_s'); // буквы, пробел и символы . - _
+});
+</script>
 <script>
 function startPayments() {
     const formData = new FormData(document.getElementById('payForm'));
@@ -92,7 +102,7 @@ function startPayments() {
                     </td>
                     <td>
                         <div >
-                                <input type="text" id="amount" name="amount" value= '0.0' required 
+                                <input type="number" id="amount" name="amount" value= '0.0' required 
                                 style="margin-left:20px;width:80px; text-decoration:none"> 
                         </div>
                     </td>
