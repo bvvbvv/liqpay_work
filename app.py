@@ -22,7 +22,7 @@ else:
     
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from flask import Flask,render_template,request, redirect, flash, jsonify
+from flask import Flask,render_template,request, redirect, flash, jsonify, session, url_for
 from liqpay import LiqPay
 import base64
 import json
@@ -39,6 +39,7 @@ from logging.handlers import TimedRotatingFileHandler
 from flask import Flask
 
 app = Flask(__name__)
+app.secret_key = 'gTVz12Wxp29lk6ERk4Tm2K'  # Замените на ваш секретный ключ
 
 ## ---------------------------------------------------------
 # 🔧 Настройка логирования Flask
@@ -240,10 +241,19 @@ def callback():
         return "Invalid currency: use UAH only !", 400
     
     if(decoded_data['status'] != 'success'):
-        if(debug):app.logger.error(f"app.py callback Payment status not success: {decoded_data['status']}")
+        err_code=decoded_data.get('err_code','no_code') 
+        err_count=session.get(err_code, 0)
+        err_count += 1
+        session[err_code] = err_count
+        if(debug):app.logger.error(f"app.py callback err_code={err_code} err_count={err_count} Payment status not success: {decoded_data['status']}")
         if(debug):print(f" Payment status not success: {decoded_data['status']}")
         error_payments_aquire(decoded_data) # обновляем статус в payments_acquire на неуспешный и записываем ошибку
-        return "Payment not success", 400
+        if(err_count >=3):
+            if(debug):app.logger.error(f" Payment failed 3 times for err_code={err_code}, no more attempts ")
+            return "success", 200 # больше не пытаться
+        else:
+            return "Payment not success", 400 # будет повторная попытка из liqpay
+        
     update_row_count=0
     update_row_count=update_payments_aquire(decoded_data)
     if (update_row_count == 1) : #обновлена запись в payments_acquire
