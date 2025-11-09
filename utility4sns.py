@@ -298,14 +298,14 @@ def check_pay_status(order_id):
     cur = conn.cursor()
     cur.execute("""
     select status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1,
-    payment_date, err_message, commission, net_ammount, payment_date  from payments_acquire where order_id= %s
+    payment_date, err_message, commission, net_ammount, payment_date, created_at from payments_acquire where order_id= %s
     """, (order_id, )
     )
     row = cur.fetchone()
     if row:
-        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message, commission, net_ammount, payment_date = row
+        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message, commission, net_ammount, payment_date, created_at = row
         print("##^^##utility2sns check_pay_status ", status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, err_message)
-        logger.info(f"utility4sns: check_pay_status: Отримано статус платежу для order_id={order_id} : {status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, err_message={err_message}, commission={commission}, net_ammount={net_ammount}")
+        logger.info(f"utility4sns: check_pay_status: Отримано статус платежу для order_id={order_id} : {status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, err_message={err_message}, commission={commission}, net_ammount={net_ammount}, payment_date={payment_date}, created_at={created_at} ")
     else:
         print("Нет данных")
         logger.error(f"utility4sns: check_pay_status: Для order_id={order_id} немає даних в таблиці payments_acquire")
@@ -315,6 +315,9 @@ def check_pay_status(order_id):
     conn.commit()
     cur.close()
     conn.close()
+    
+    if(payment_date == None): payment_date=created_at
+        
     data_json=jsonify({
         "status":status,
         "contract":contract,
