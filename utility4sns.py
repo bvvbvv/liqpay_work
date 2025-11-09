@@ -298,12 +298,12 @@ def check_pay_status(order_id):
     cur = conn.cursor()
     cur.execute("""
     select status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1,
-    payment_date, err_message, commission, net_ammount  from payments_acquire where order_id= %s
+    payment_date, err_message, commission, net_ammount, payment_date  from payments_acquire where order_id= %s
     """, (order_id, )
     )
     row = cur.fetchone()
     if row:
-        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message, commission, net_ammount = row
+        status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, payment_date, err_message, commission, net_ammount, payment_date = row
         print("##^^##utility2sns check_pay_status ", status, contract, amount, abonent_name, payer_name, sender_full_name, old_account1, new_account1, err_message)
         logger.info(f"utility4sns: check_pay_status: Отримано статус платежу для order_id={order_id} : {status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, err_message={err_message}, commission={commission}, net_ammount={net_ammount}")
     else:
@@ -327,10 +327,11 @@ def check_pay_status(order_id):
         "err_message":err_message,
         "payment_date":payment_date,
         "commission":commission,
-        "net_ammount":net_ammount
+        "net_ammount":net_ammount,
+        "payment_date":payment_date
     })
     #logger.info(f"utility4sns: check_pay_status: Повертаємо JSON статус платежу для order_id={order_id} : {data_json.get_data(as_text=True)}\n###################################\n")
-    logger.info(f"check_pay_status: status={status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, comission={commission}, net_ammount={net_ammount}, err_message={err_message}\n###################################\n")
+    logger.info(f"check_pay_status: status={status}, contract={contract}, amount={amount}, abonent_name={abonent_name}, payer_name={payer_name}, sender_full_name={sender_full_name}, old_account1={old_account1}, new_account1={new_account1}, comission={commission}, net_ammount={net_ammount}, err_message={err_message}, payment_date= {payment_date}\n###################################\n")
     return data_json
 
 def get_os_param():

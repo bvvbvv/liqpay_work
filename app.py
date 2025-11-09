@@ -115,6 +115,7 @@ def oferta(): #только полное имя фвайла !!
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
+    session['err_count'] = 0  # сбрасываем счетчик ошибок при заходе на форму
     if request.method == 'POST':
         contract = request.form.get('contract')
         contract=re.sub(r'^0+', '', contract)
@@ -242,9 +243,10 @@ def callback():
     
     if(decoded_data['status'] != 'success'):
         err_code=decoded_data.get('err_code','no_code') 
-        err_count=session.get(err_code, 0)
+        err_count=session.get('err_count', 0)
+        #err_count=session.get(err_code, 0)
         err_count += 1
-        session[err_code] = err_count
+        session['err_count'] = err_count
         if(debug):app.logger.error(f"app.py callback err_code={err_code} err_count={err_count} Payment status not success: {decoded_data['status']}")
         if(debug):print(f" Payment status not success: {decoded_data['status']}")
         error_payments_aquire(decoded_data) # обновляем статус в payments_acquire на неуспешный и записываем ошибку
@@ -252,7 +254,8 @@ def callback():
             if(debug):app.logger.error(f" Payment failed 3 times for err_code={err_code}, no more attempts ")
             return "success", 200 # больше не пытаться
         else:
-            return "Payment not success", 400 # будет повторная попытка из liqpay
+            #return "Payment not success", 400 # будет повторная попытка из liqpay
+            return "success", 200 # не будет повторная попытка из liqpay
         
     update_row_count=0
     update_row_count=update_payments_aquire(decoded_data)
@@ -308,6 +311,7 @@ def check_payments_status():
     parsed=json.loads(json_text)
     status=parsed['status']
     if(debug):print(f" ==check_status ncount={ncount}; status={status}")
+    if(debug):app.logger.info(f" == app.py check_status ncount={ncount}; status={status}")
     return parsed
 
 #=======================================
