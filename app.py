@@ -305,13 +305,12 @@ def repeat_pay():
 @app.route('/check_payments_status')
 def check_payments_status():
     order_id = request.args.get('order_id')
-    ncount = request.args.get('ncount')
     data=check_pay_status(order_id)
     json_text=data.get_data(as_text=True)
     parsed=json.loads(json_text)
     status=parsed['status']
-    if(debug):print(f" ==check_status ncount={ncount}; status={status}")
-    if(debug):app.logger.info(f" == app.py check_status ncount={ncount}; status={status}")
+    if(debug):print(f" ==check_status status={status}")
+    if(debug):app.logger.info(f" == app.py check_status; status={status}")
     return parsed
 
 #=======================================
