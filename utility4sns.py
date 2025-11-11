@@ -139,8 +139,16 @@ def send2sns_transaction(decoded_data):
     
         
 def make_short_name(full_name):
+    import re
+    name_list= re.split(r'\s', full_name.strip())
+    last_name='?'
+    sec_name=' '
+    par_name=' '
+    len_name=len(name_list)
+    if len_name >=1: last_name=name_list[0]
+    if len_name >=2: sec_name=name_list[1]
+    if len_name >=3: par_name=name_list[2]  
 
-    last_name, sec_name, par_name,*rest = full_name.split()
     ln=len(last_name)
     
     if ln > 5:
