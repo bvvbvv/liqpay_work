@@ -1,0 +1,21 @@
+name: Deploy to server pay.sns.net.ua
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect via SSH and pull
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 193.120.162.10
+          username: sns_user
+          password: 'password'
+          script: |
+            cd /var/www/
+            git pull
+         
+ 
