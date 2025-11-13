@@ -165,6 +165,8 @@ def form_work():
 @app.route('/pay_check_contract', methods=["POST"])
 def pay_check_contract(): #
     contract = request.form['contract']
+    contract=re.sub(r'^0+', '', contract)  # убираем ведущие нули
+    if(debug):app.logger.info(f"!!app.py pay_check_contract ={contract}")
     user_id=''
     if(debug):print(f"### contract {contract}")
     #if(debug):app.logger.info(f"### contract {contract}")
