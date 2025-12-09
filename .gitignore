@@ -10,4 +10,5 @@ liqpay_sdk/
 *.log
 *_old.*
 liqpay_config.py
+log/
 liqpay_config_loc.py
